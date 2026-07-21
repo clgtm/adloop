@@ -1,5 +1,6 @@
 """AdLoop — MCP server connecting Google Ads + GA4 + codebase."""
 
+import os
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
@@ -9,16 +10,36 @@ except PackageNotFoundError:  # running from a source tree without install
     __version__ = "0.0.0.dev0"
 
 
-def main() -> None:
-    """Entry point for `adloop` console script.
+def _mcp_run_options() -> dict[str, str | int]:
+    """Build FastMCP launch options for the explicitly configured hosted transport.
 
-    Subcommands:
-      adloop                 Start the MCP server (default).
-      adloop init            Run the interactive setup wizard.
-      adloop install-rules   Install Claude orchestration rules globally.
-      adloop update-rules    Refresh the installed rules block.
-      adloop uninstall-rules Remove the installed rules block + commands.
-      adloop --version, -V   Print version and exit.
+    Args:
+        None.
+
+    Returns:
+        Empty options for local stdio, or HTTP transport options bound to the Cloud Run port.
+
+    Raises:
+        ValueError: If ``PORT`` is set to a non-integer value for an HTTP deployment.
+    """
+    if os.environ.get("ADLOOP_TRANSPORT", "").strip().lower() != "http":
+        return {}
+
+    return {
+        "transport": "http",
+        "host": os.environ.get("ADLOOP_HOST", "0.0.0.0"),
+        "port": int(os.environ.get("PORT", "8080")),
+    }
+
+
+def main() -> None:
+    """Start the CLI or MCP server while retaining stdio as the local default.
+
+    Args:
+        None. Command behavior is selected from process arguments and deployment environment variables.
+
+    Returns:
+        None. The selected CLI action completes or the MCP server runs until it is stopped.
     """
     args = sys.argv[1:]
 
@@ -57,4 +78,4 @@ def main() -> None:
 
     from adloop.server import mcp
 
-    mcp.run()
+    mcp.run(**_mcp_run_options())

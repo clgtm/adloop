@@ -4,7 +4,42 @@ from __future__ import annotations
 
 import yaml
 
+from adloop import _mcp_run_options
 from adloop.cli import _generate_config_yaml
+
+
+def test_mcp_run_options_defaults_to_stdio(monkeypatch):
+    """Keeps local IDE launches on FastMCP's default stdio transport.
+
+    Args:
+        monkeypatch: Pytest environment fixture used to clear hosted deployment variables.
+
+    Returns:
+        None. Asserts that no FastMCP transport options are supplied locally.
+    """
+    monkeypatch.delenv("ADLOOP_TRANSPORT", raising=False)
+
+    assert _mcp_run_options() == {}
+
+
+def test_mcp_run_options_uses_cloud_run_http_configuration(monkeypatch):
+    """Builds the externally reachable HTTP settings required by Cloud Run.
+
+    Args:
+        monkeypatch: Pytest environment fixture used to provide deployment variables.
+
+    Returns:
+        None. Asserts FastMCP receives the configured host and Cloud Run port.
+    """
+    monkeypatch.setenv("ADLOOP_TRANSPORT", "http")
+    monkeypatch.setenv("ADLOOP_HOST", "0.0.0.0")
+    monkeypatch.setenv("PORT", "8080")
+
+    assert _mcp_run_options() == {
+        "transport": "http",
+        "host": "0.0.0.0",
+        "port": 8080,
+    }
 
 
 class TestGenerateConfigYaml:
