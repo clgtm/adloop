@@ -1,0 +1,9 @@
+version: v1
+tenant_id: tenant_user_clgtm
+service_id: svc_adloop
+environment: prod
+tools:
+  - name: adloop
+    tags:
+      - read
+      - write
