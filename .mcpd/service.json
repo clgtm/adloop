@@ -1,0 +1,9 @@
+{
+  "entry_point": "app.py",
+  "environment": "prod",
+  "health_check_path": "/health",
+  "name": "adloop",
+  "repository": "clgtm/adloop",
+  "runtime": "python",
+  "service_id": "svc_adloop"
+}
